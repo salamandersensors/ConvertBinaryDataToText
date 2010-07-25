@@ -1,0 +1,9 @@
+Here is the binary to hexadecimal converter bin_hex2.txt.  The program expects two
+command line arguments; the first is the name of the file to read the binary
+from and the second is the one where the final formatted hexadecimal is
+stored.  So      perl bin_hex2.txt LOG17.bin LOG17.txt     would
+convert LOG17.bin into hexadecimal and store the results in LOG17.txt.  Two
+files that I used in debugging (hex.txt and temp.txt) are created when the
+program is run, but these aren't important and can be deleted.
+
+Matt

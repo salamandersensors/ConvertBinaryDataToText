@@ -1,0 +1,80 @@
+#!/usr/bin/perl
+
+open INFILE1, $ARGV[0] or die "Can't open *.bin for reading: $!\n";       #file to take bin from
+open OUTFILE1, ">hex.txt" or die "Can't open hex.txt for writing: $!\n";  #temporary file for hex
+select OUTFILE1;
+
+binmode INFILE1;
+
+while (read(INFILE1, $buffer, 1) and printf("%02X", ord($buffer))){};  #read in binary, print in hex
+print "\n";
+close(INFILE1);
+close(OUTFILE1);
+
+open INFILE2, "hex.txt" or die "Can't open hex.txt for reading: $!\n";    #take in the hex to format
+open OUTFILE2, ">temp.txt" or die "Can't open **.txt for reading: $!\n";  #put into another temp file
+select OUTFILE2;
+
+while (read(INFILE2, $buffer, 1))                                #read in a char at a time
+{
+  $string = $string . $buffer;                                   #string keeps track of all chars
+    
+  if (substr($string,-4,2) eq "7D" && substr($string,-2,2) eq "5D")
+  {
+    substr($string,-4,4) = "7D";                                 #Weed out the extra chars with 7D
+  }
+  if (substr($string,-4,2) eq "7D" && substr($string,-2,2) eq "5E")
+  {
+    substr($string,-4,4) = "7E";                                 #Weed out the extra chars with 7E
+  }
+                                                                 #Split lines based on 7E
+  if (substr($string,-6,4) eq "7E7E" && substr($string,-6,6) ne "7E7E7E")                
+  {
+    substr($string,-4,1) = "\n" . "7";                        
+  }
+
+                      #The next two sections add the missing 0's in the serial numbers
+  $x = substr($string,-8,8); 
+  if ($x eq "206CCA09" || $x eq "2060D609" || $x eq "2071CA09" || $x eq "2056D209" || $x eq "2056D209" ||  $x eq "20CCCA09" || $x eq "20D0CA09" || $x eq "20AFB80A" || $x eq "20BEC50A" || $x eq "20B7CD0A" || $x eq "20CAD509" || $x eq "20A6CD09" || $x eq "2086D309")
+  {
+     substr($string,-8,8) = substr($string,-8,8) . "000000";
+  }
+  $x = substr($string,-10,10);
+  if ($x eq "2837013701" || $x eq "28EA373701" || $x eq "280A793701" || $x eq "2863F83601" || $x eq "28B2C03601" || $x eq "2804E13601")
+  {
+     substr($string,-10,10) = substr($string,-10,10) . "0000"; 
+  }
+}
+
+
+$index = 2;
+while ($index < length($string))                      #Split into two chars for each hex number
+{
+  if (substr($string,$index,1) ne "\n")               #Don't add a space at newline
+  {
+    substr($string,$index,1) = " " . substr($string,$index,1);
+  }
+  $index = $index + 3;                                #Move 3 at a time to hit the right spots
+}
+print $string;
+close(INFILE2);
+close(OUTFILE2);
+
+open INFILE3, "<temp.txt" or die "Can't open temp.txt for reading: $!\n";
+open OUTFILE3, ">$ARGV[1]" or die "Can't open ***.txt for reading: $!\n";   #The final product file
+select OUTFILE3;
+
+foreach (<INFILE3>)          #This section cuts off the edges of the lines to get rid of extra chars 
+{
+  substr($_,0,6) = "";
+  substr($_,63,length($string)-1) = "\n";
+  print $_;
+}
+
+close(INFILE3);
+  
+
+
+
+
+
